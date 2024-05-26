@@ -3,15 +3,13 @@ import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { RootState, updateMemoDetail, updateMemoTitle } from '../store';
 import { useDispatch } from 'react-redux';
+import { useParams } from 'react-router-dom';
 
-interface DetailProps {
-  selectedId: string;
-}
-
-function Detail({ selectedId }: DetailProps) {
+function Detail() {
   const dispatch = useDispatch();
+  const { id } = useParams();
   const detailData = useSelector((state: RootState) =>
-    state.memo.find((data) => data.id === selectedId)
+    state.memo.find((data) => data.id === id)
   );
   const [detailContent, setDetailContent] = useState(detailData?.detail || '');
   const [debouncedDetailContent, setDebouncedDetailContent] =
@@ -25,29 +23,27 @@ function Detail({ selectedId }: DetailProps) {
         detailRef.current.focus();
       }
     }
-  }, [detailData]);
+  }, [detailData, id]);
+
+  useEffect(() => {
+    if (id && debouncedDetailContent === '') {
+      dispatch(updateMemoTitle({ id: id, newTitle: '새로운 메모' }));
+      dispatch(updateMemoDetail({ id: id, detail: debouncedDetailContent }));
+    } else if (id) {
+      dispatch(updateMemoTitle({ id: id, newTitle: debouncedDetailContent }));
+      dispatch(updateMemoDetail({ id: id, detail: debouncedDetailContent }));
+    }
+  }, [debouncedDetailContent]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedDetailContent(detailContent);
-    }, 500);
+    }, 200);
 
     return () => {
       clearTimeout(handler);
     };
   }, [detailContent]);
-
-  useEffect(() => {
-    if (selectedId && debouncedDetailContent) {
-      dispatch(
-        updateMemoTitle({ id: selectedId, newTitle: debouncedDetailContent })
-      );
-      dispatch(
-        updateMemoDetail({ id: selectedId, detail: debouncedDetailContent })
-      );
-    }
-  }, [debouncedDetailContent]);
-
   const handleText = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDetailContent(e.target.value);
   };
@@ -91,6 +87,8 @@ const DateTime = styled.span`
 `;
 
 const DetailContent = styled.textarea`
+  width: 100%;
+  height: 100%;
   resize: none;
   padding: 0;
   font-size: 15px;

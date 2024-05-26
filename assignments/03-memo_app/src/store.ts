@@ -42,6 +42,7 @@ const memoSlice = createSlice({
       action: PayloadAction<{ id: string; newTitle: string }>
     ) => {
       const { id, newTitle } = action.payload;
+
       return state.map((memo) =>
         memo.id === id ? { ...memo, title: newTitle } : memo
       );

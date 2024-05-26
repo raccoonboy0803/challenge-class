@@ -5,11 +5,11 @@ import { Link } from 'react-router-dom';
 
 interface ListProps {
   id: string;
-  isSelected: boolean;
+  selectedId: string | null;
   onClick: () => void;
 }
 
-function List({ id, onClick, isSelected }: ListProps) {
+function List({ id, onClick, selectedId }: ListProps) {
   const listData = useSelector((state: RootState) => state.memo).filter(
     (data) => data.id === id
   )[0];
@@ -30,7 +30,7 @@ function List({ id, onClick, isSelected }: ListProps) {
 
   return (
     <Link to={`${id}`}>
-      <ListItem onClick={onClick} $isSelected={isSelected}>
+      <ListItem onClick={onClick} $isSelected={selectedId === id}>
         <ListTitle>{listData.title}</ListTitle>
         <ListTime>{formatTime(new Date(listData.date))}</ListTime>
       </ListItem>

@@ -6,37 +6,49 @@ import { RootState, addMemo, deleteMemo } from '../store';
 import { useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';
 import Detail from './Detail';
+import { useNavigate, useParams } from 'react-router-dom';
 
 function Home() {
   const memos = useSelector((state: RootState) => state.memo);
+  const { id } = useParams();
   const [selectedId, setSelectedId] = useState<string | null>(
     memos.length > 0 ? memos[0].id : null
   );
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const writeNewMemo = () => {
+    const newMemoId = uuidv4();
     const date = String(new Date());
-    dispatch(addMemo({ id: uuidv4(), title: '새로운 메모', date, detail: '' }));
+    dispatch(
+      addMemo({ id: newMemoId, title: '새로운 메모', date, detail: '' })
+    );
+    id && setSelectedId(newMemoId);
+    navigate(newMemoId);
   };
 
   useEffect(() => {
     if (memos.length === 0) writeNewMemo();
-  }, []);
+    id && setSelectedId(id);
+  }, [id]);
 
   const handleMemoSelect = (id: string) => {
     setSelectedId(id);
   };
 
   const deleteList = () => {
-    if (selectedId) {
-      const currentIndex = memos.findIndex((memo) => memo.id === selectedId);
-      if (currentIndex !== -1) {
-        const nextIndex =
-          currentIndex + 1 < memos.length ? currentIndex + 1 : currentIndex - 1;
-        const nextSelectedId = nextIndex >= 0 ? memos[nextIndex].id : null;
-        setSelectedId(nextSelectedId);
-        dispatch(deleteMemo(selectedId));
+    if (id) {
+      dispatch(deleteMemo(id));
+      const currentIndex = memos.findIndex((memo) => memo.id === id);
+      let nextIndex;
+      if (currentIndex === 0) {
+        nextIndex = currentIndex + 1 < memos.length ? currentIndex + 1 : 0;
+      } else {
+        nextIndex = 0;
       }
+      const nextSelectedId = memos[nextIndex]?.id;
+      setSelectedId(nextSelectedId);
+      navigate(nextSelectedId);
     }
   };
 
@@ -53,14 +65,12 @@ function Home() {
               key={list.id}
               {...list}
               onClick={() => handleMemoSelect(list.id)}
-              isSelected={selectedId === list.id}
+              selectedId={selectedId}
             />
           ))}
         </ListWrap>
       </ListSection>
-      <DetailSection>
-        {selectedId && <Detail selectedId={selectedId} />}
-      </DetailSection>
+      <DetailSection>{selectedId && <Detail />}</DetailSection>
     </Wrapper>
   );
 }

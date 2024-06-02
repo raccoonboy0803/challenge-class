@@ -1,15 +1,9 @@
-import {
-  createContext,
-  useState,
-  useCallback,
-  ReactNode,
-  useEffect,
-} from 'react';
+import { createContext, useState, useCallback, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import clsx from 'clsx';
 import './index.css';
+import Toast from './Toast';
 
-interface ToastMessage {
+export interface ToastMessage {
   id: number;
   title: string;
   description: string;
@@ -18,6 +12,7 @@ interface ToastMessage {
 
 export interface ToastContextType {
   addToast: (message: Omit<ToastMessage, 'id'>) => void;
+  removeToast: (id: number) => void;
 }
 
 export const ToastContext = createContext<ToastContextType | undefined>(
@@ -34,11 +29,15 @@ const ToastProvider = ({ children }: { children: ReactNode }) => {
 
     setTimeout(() => {
       setToasts((prevToasts) => prevToasts.filter((t) => t.id !== id));
-    }, message.duration + 1000); // 애니메이션 시간 포함
+    }, message.duration + 1000);
+  }, []);
+
+  const removeToast = useCallback((id: number) => {
+    setToasts((prevToasts) => prevToasts.filter((t) => t.id !== id));
   }, []);
 
   return (
-    <ToastContext.Provider value={{ addToast }}>
+    <ToastContext.Provider value={{ addToast, removeToast }}>
       {children}
       {createPortal(
         <div className="fixed bottom-4 right-4 flex flex-col space-y-2">
@@ -46,39 +45,9 @@ const ToastProvider = ({ children }: { children: ReactNode }) => {
             <Toast key={toast.id} {...toast} />
           ))}
         </div>,
-        document.body
+        document.getElementById('toast')!
       )}
     </ToastContext.Provider>
-  );
-};
-
-const Toast = ({ title, description, duration }: ToastMessage) => {
-  const [isVisible, setIsVisible] = useState(true);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setIsVisible(false);
-    }, duration);
-
-    return () => clearTimeout(timeout);
-  }, [duration]);
-
-  return (
-    <div
-      className={clsx(
-        'max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden',
-        isVisible ? 'animate-in' : 'animate-out'
-      )}
-    >
-      <div className="p-4">
-        <div className="flex items-start">
-          <div className="ml-3 flex-1">
-            <p className="text-sm font-medium text-gray-900">{title}</p>
-            <p className="mt-1 text-sm text-gray-500">{description}</p>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 };
 

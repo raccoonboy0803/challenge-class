@@ -4,14 +4,14 @@ import useToast from './Hook.ts';
 
 const App: React.FC = () => {
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <ToastProvider>
+    <ToastProvider>
+      <div className="flex items-center justify-center min-h-screen">
         <div className="p-6">
           <h1 className="text-2xl font-bold text-center">토스트 컨트롤러</h1>
           <ToastDemo />
         </div>
-      </ToastProvider>
-    </div>
+      </div>
+    </ToastProvider>
   );
 };
 
